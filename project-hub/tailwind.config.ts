@@ -1,14 +1,18 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Design system — light SaaS theme (Linear/Vercel/Stripe register).
+ * Design system — Modern Minimalist (.claude/skills/themes/modern-minimalisti.md).
+ * Grayscale: charcoal #36454F, slate gray #708090, light gray #D3D3D3, white.
  *
  * Rules encoded here so components can't drift:
- * - ONE accent (`accent`), reserved for live/interactive states (<10% of UI).
+ * - Monochrome: the "accent" IS charcoal. Interactive text needs a second
+ *   affordance (underline, border, fill) — color alone can't signal it here.
+ * - Slate gray #708090 is 4.05:1 on white — below the 4.5:1 text floor, so
+ *   it's reserved for non-text roles (status dots); muted TEXT uses the
+ *   darker #5C6B78 (5.5:1) from the same hue.
  * - ONE border radius (`md` = 10px). Pills use `rounded-full` — a different
  *   primitive (dots/tags), not a competing radius.
  * - ONE shadow (`card`), used on hover only; resting state relies on `border`.
- * - Neutral ink-on-white surfaces; every text color ≥ 4.5:1 on white.
  * Components must use these tokens, never raw hex.
  */
 const config: Config = {
@@ -21,29 +25,29 @@ const config: Config = {
     extend: {
       colors: {
         surface: {
-          DEFAULT: "#FFFFFF", // page background
-          raised: "#FAFAFA", // cards, inputs — a barely-there lift
+          DEFAULT: "#FFFFFF", // page background (theme: White)
+          raised: "#F5F6F7", // cards, inputs — a whisper of slate
         },
         border: {
-          DEFAULT: "#E6E6E9", // hairlines, card edges, dividers
-          strong: "#D4D4D8", // input outlines, needs a touch more presence
+          DEFAULT: "#D3D3D3", // hairlines, dividers (theme: Light Gray)
+          strong: "#B8BFC5", // input outlines, needs a touch more presence
         },
         ink: {
-          DEFAULT: "#18181B", // headings + primary text  (16.9:1 on white)
-          muted: "#5B5B66", // secondary text, labels     (6.9:1 on white)
+          DEFAULT: "#36454F", // headings + primary text (theme: Charcoal, 9.7:1)
+          muted: "#5C6B78", // secondary text — darkened slate (5.5:1)
         },
-        // The single accent. Live/active/interactive only.
+        // Monochrome accent = charcoal. Interactive text also carries an
+        // underline/border/fill so state never rides on color alone.
         accent: {
-          DEFAULT: "#4F46E5", // indigo 600 (7.0:1 on white)
-          hover: "#4338CA", // hover state only
-          soft: "#EEF0FE", // faint tint for active chip backgrounds
+          DEFAULT: "#36454F", // = charcoal
+          hover: "#24313B", // hover state only — a step darker
+          soft: "#ECEFF1", // faint slate tint for active chip backgrounds
         },
-        // Status is meaning, not a second accent: expressed as dots/text.
-        // Only `in-progress` (the live one) borrows the accent.
+        // Status is meaning: dot + text label, never the dot alone.
         status: {
-          shipped: "#5B5B66", // = ink-muted
-          progress: "#4F46E5", // = accent
-          archived: "#A1A1AA", // = a muted gray
+          shipped: "#36454F", // charcoal — done, solid
+          progress: "#708090", // slate (theme: Slate Gray) — mid-tone, non-text
+          archived: "#B8BFC5", // faded — matches border-strong
         },
         danger: "#DC2626", // destructive actions + validation errors only
       },
@@ -51,12 +55,14 @@ const config: Config = {
         md: "10px", // the one radius
       },
       boxShadow: {
-        card: "0 1px 2px rgba(24,24,27,0.04), 0 4px 12px rgba(24,24,27,0.05)", // the one shadow
+        card: "0 1px 2px rgba(54,69,79,0.05), 0 4px 12px rgba(54,69,79,0.06)", // the one shadow
       },
       fontFamily: {
-        display: ["var(--font-space-grotesk)", "sans-serif"],
-        body: ["var(--font-inter)", "sans-serif"],
-        mono: ["var(--font-plex-mono)", "monospace"],
+        // Theme: DejaVu Sans Bold for headers, DejaVu Sans for body.
+        // Same family in both roles — hierarchy comes from weight + size.
+        display: ["var(--font-dejavu-sans)", "DejaVu Sans", "Verdana", "sans-serif"],
+        body: ["var(--font-dejavu-sans)", "DejaVu Sans", "Verdana", "sans-serif"],
+        mono: ["var(--font-dejavu-mono)", "DejaVu Sans Mono", "monospace"],
       },
       fontSize: {
         // Type scale — sizes paired with their intended line-height.

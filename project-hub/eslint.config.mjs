@@ -5,6 +5,11 @@ const eslintConfig = [
   ...nextCoreWebVitals,
   ...nextTypescript,
   {
+    // eslint-plugin-react's version auto-detection crashes on ESLint 10
+    // (getFilename was removed); pinning the version skips detection.
+    settings: { react: { version: "19.2.7" } },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",

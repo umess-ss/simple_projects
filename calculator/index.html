@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .calc {
+      width: 100%;
+      max-width: 360px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 10px 40px rgba(0,0,0,0.06);
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    .display {
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 24px;
+      text-align: right;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+    .display .prev {
+      font-size: 14px;
+      color: #94a3b8;
+      min-height: 18px;
+      word-break: break-all;
+    }
+    .display .curr {
+      font-size: 42px;
+      font-weight: 300;
+      letter-spacing: -0.5px;
+      word-break: break-all;
+      line-height: 1.1;
+    }
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: #e2e8f0;
+    }
+    .keys button {
+      border: none;
+      background: #ffffff;
+      padding: 20px;
+      font-size: 20px;
+      cursor: pointer;
+      transition: background 0.1s;
+      color: #334155;
+      font-weight: 500;
+    }
+    .keys button:hover { background: #f1f5f9; }
+    .keys button:active { background: #e2e8f0; }
+    .keys button.span-2 { grid-column: span 2; }
+    .keys button.accent {
+      background: #3b82f6;
+      color: #fff;
+    }
+    .keys button.accent:hover { background: #2563eb; }
+    .keys button.accent:active { background: #1d4ed8; }
+    .keys button.muted { color: #64748b; }
+    .keys button.equals {
+      background: #10b981;
+      color: #fff;
+    }
+    .keys button.equals:hover { background: #059669; }
+    .keys button.equals:active { background: #047857; }
+    .keys button.zero { grid-column: span 2; }
+    @media (max-width: 400px) {
+      .keys button { padding: 16px; font-size: 18px; }
+      .display .curr { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="calc">
+    <div class="display">
+      <div class="prev" id="prev"></div>
+      <div class="curr" id="curr">0</div>
+    </div>
+    <div class="keys">
+      <button class="muted" onclick="clearAll()">AC</button>
+      <button class="muted" onclick="deleteLast()">⌫</button>
+      <button class="muted" onclick="chooseOp('%')">%</button>
+      <button class="accent" onclick="chooseOp('÷')">÷</button>
+
+      <button onclick="appendNum('7')">7</button>
+      <button onclick="appendNum('8')">8</button>
+      <button onclick="appendNum('9')">9</button>
+      <button class="accent" onclick="chooseOp('×')">×</button>
+
+      <button onclick="appendNum('4')">4</button>
+      <button onclick="appendNum('5')">5</button>
+      <button onclick="appendNum('6')">6</button>
+      <button class="accent" onclick="chooseOp('-')">−</button>
+
+      <button onclick="appendNum('1')">1</button>
+      <button onclick="appendNum('2')">2</button>
+      <button onclick="appendNum('3')">3</button>
+      <button class="accent" onclick="chooseOp('+')">+</button>
+
+      <button class="zero" onclick="appendNum('0')">0</button>
+      <button onclick="appendNum('.')">.</button>
+      <button class="equals" onclick="compute()">=</button>
+    </div>
+  </div>
+
+  <script>
+    let current = '0';
+    let previous = '';
+    let operation = null;
+    let shouldReset = false;
+
+    const currEl = document.getElementById('curr');
+    const prevEl = document.getElementById('prev');
+
+    function updateDisplay() {
+      currEl.textContent = current || '0';
+      prevEl.textContent = previous + (operation ? ' ' + operation : '');
+    }
+
+    function appendNum(num) {
+      if (shouldReset) {
+        current = num === '.' ? '0.' : num;
+        shouldReset = false;
+      } else {
+        if (num === '.' && current.includes('.')) return;
+        if (current === '0' && num !== '.') current = num;
+        else current += num;
+      }
+      updateDisplay();
+    }
+
+    function chooseOp(op) {
+      if (current === '') return;
+      if (previous !== '') compute();
+      operation = op;
+      previous = current;
+      shouldReset = true;
+      updateDisplay();
+    }
+
+    function compute() {
+      if (!operation || previous === '' || current === '') return;
+      const prev = parseFloat(previous);
+      const curr = parseFloat(current);
+      let result = 0;
+      switch (operation) {
+        case '+': result = prev + curr; break;
+        case '-': result = prev - curr; break;
+        case '×': result = prev * curr; break;
+        case '÷': result = curr === 0 ? 'Error' : prev / curr; break;
+        case '%': result = prev % curr; break;
+      }
+      current = String(result).length > 10 ? parseFloat(result.toPrecision(10)) : String(result);
+      operation = null;
+      previous = '';
+      shouldReset = true;
+      updateDisplay();
+    }
+
+    function clearAll() {
+      current = '0';
+      previous = '';
+      operation = null;
+      updateDisplay();
+    }
+
+    function deleteLast() {
+      if (current.length === 1) current = '0';
+      else current = current.slice(0, -1);
+      updateDisplay();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key >= '0' && e.key <= '9') appendNum(e.key);
+      if (e.key === '.') appendNum('.');
+      if (e.key === '+') chooseOp('+');
+      if (e.key === '-') chooseOp('-');
+      if (e.key === '*') chooseOp('×');
+      if (e.key === '/') { e.preventDefault(); chooseOp('÷'); }
+      if (e.key === '%') chooseOp('%');
+      if (e.key === 'Enter' || e.key === '=') compute();
+      if (e.key === 'Backspace') deleteLast();
+      if (e.key === 'Escape') clearAll();
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
