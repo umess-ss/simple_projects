@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import "./globals.css";
+import { ToastProvider } from "@/components/ToastProvider";
 
 // DejaVu Sans ships only Book (400) and Bold (700) — headings must use
 // font-bold, never font-medium (500 would be a synthesized fake weight).
@@ -36,7 +37,11 @@ export default function RootLayout({
     >
       <body className="flex min-h-screen flex-col">
         <Header />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1">
+          <ToastProvider>
+          {children}
+          </ToastProvider>
+          </main>
         <Footer />
       </body>
     </html>

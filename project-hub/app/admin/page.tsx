@@ -12,6 +12,8 @@ import {
 } from "@/lib/store";
 import type { Project, ProjectStatus } from "@/lib/types";
 
+import {useToast} from "@/components/ToastProvider";
+
 const STATUS_STYLES: Record<ProjectStatus, string> = {
   shipped: "bg-emerald-50 text-emerald-700 border-emerald-200",
   "in-progress": "bg-amber-50 text-amber-700 border-amber-200",
@@ -45,6 +47,7 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | "all">("all");
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const { toast } = useToast();
 
   // Load on mount
   useEffect(() => {
@@ -96,12 +99,14 @@ export default function AdminPage() {
 
     upsertProject(project);
     refresh();
+    toast(editingId ? "Project updated" : "Project created");
     closeForm();
   };
 
   const handleDelete = (id: string) => {
     if (!confirm("Delete this project? This cannot be undone.")) return;
     deleteProject(id);
+    toast("Project deleted");
     refresh();
   };
 
@@ -109,6 +114,7 @@ export default function AdminPage() {
     resetProjects();
     refresh();
     setShowResetConfirm(false);
+    toast("Data reset");
   };
 
   const filtered = projects.filter((p) => {
@@ -120,6 +126,40 @@ export default function AdminPage() {
     return matchesSearch && matchesStatus;
   });
 
+    const exportData = () => {
+    const data = loadProjects();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `project-atlas-${new Date().toISOString().split("T")[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("Projects exported");
+  };
+
+    const importData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target?.result as string);
+        if (Array.isArray(data)) {
+          saveProjects(data);
+          refresh();
+          toast("Projects imported");
+        } else {
+          toast("Invalid JSON format", "error");
+        }
+      } catch {
+        toast("Failed to parse JSON", "error");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ""; // reset so same file can be selected again
+  };
+  
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
       {/* Header */}
@@ -131,20 +171,31 @@ export default function AdminPage() {
             reloads.
           </p>
         </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowResetConfirm(true)}
-            className="rounded-md border border-border px-4 py-2 text-small text-ink-muted transition-colors hover:bg-surface-raised hover:text-ink"
-          >
-            Reset Data
-          </button>
-          <button
-            onClick={openNew}
-            className="rounded-md bg-ink px-4 py-2 text-small font-bold text-surface transition-colors hover:bg-ink/90"
-          >
-            + New Project
-          </button>
-        </div>
+<div className="flex gap-3">
+  <button
+    onClick={exportData}
+    className="rounded-md border border-border px-4 py-2 text-small text-ink-muted transition-colors hover:bg-surface-raised hover:text-ink"
+    title="Download projects as JSON"
+  >
+    Export JSON
+  </button>
+  <label className="rounded-md border border-border px-4 py-2 text-small text-ink-muted transition-colors hover:bg-surface-raised hover:text-ink cursor-pointer">
+    Import JSON
+    <input type="file" accept=".json" onChange={importData} className="hidden" />
+  </label>
+  <button
+    onClick={() => setShowResetConfirm(true)}
+    className="rounded-md border border-border px-4 py-2 text-small text-ink-muted transition-colors hover:bg-surface-raised hover:text-ink"
+  >
+    Reset Data
+  </button>
+  <button
+    onClick={openNew}
+    className="rounded-md bg-ink px-4 py-2 text-small font-bold text-surface transition-colors hover:bg-ink/90"
+  >
+    + New Project
+  </button>
+</div>
       </div>
 
       {/* Filters */}
